@@ -1,18 +1,13 @@
-
-
 #define NUM_LEDS (2*1+2*1)
-#define LED_LEFT_R 3
-#define LED_LEFT_G 5
-#define LED_LEFT_B 6
+#define LEFT_LED_PIN_RED 3
+#define LEFT_LED_PIN_GREEN 5
+#define LEFT_LED_PIN_BLUE 6
 
-#define LED_RIGHT_R 9
-#define LED_RIGHT_G 10
-#define LED_RIGHT_B 11
+#define RIGHT_LED_PIN_RED 9
+#define RIGHT_LED_PIN_GREEN 10
+#define RIGHT_LED_PIN_BLUE 11
+
 #define BRIGHTNESS 255 //range is 0..255 with 255 beeing the MAX brightness
-
-// --------------------------------------------------------------------------------------------
-// NO CHANGE REQUIRED BELOW THIS LINE
-// --------------------------------------------------------------------------------------------
 
 #define UPDATES_PER_SECOND 60
 #define TIMEOUT 3000
@@ -28,29 +23,21 @@ uint8_t current_preamble_position = 0;
 
 unsigned long last_serial_available = -1L;
 
-
 byte buffer[3];
-uint8_t startIndex = 0;
 
+// Filler animation attributes
+uint8_t startIndex = 0;
 
 void setup()
 {
   Serial.begin(1000000);
-
-  pinMode(LED_LEFT_R, OUTPUT);
-  pinMode(LED_LEFT_G, OUTPUT);
-  pinMode(LED_LEFT_B, OUTPUT);
-  
-  pinMode(LED_RIGHT_R, OUTPUT);
-  pinMode(LED_RIGHT_G, OUTPUT);
-  pinMode(LED_RIGHT_B, OUTPUT);
-  
-  /*FastLED.clear(true);
-  FastLED.addLeds<WS2812B, LED_DATA_PIN, GRB>(leds, NUM_LEDS);
-  FastLED.setBrightness(currentBrightness);
-  FastLED.setDither(0);*/
+  pinMode(LEFT_LED_PIN_RED, OUTPUT);
+  pinMode(LEFT_LED_PIN_GREEN, OUTPUT);
+  pinMode(LEFT_LED_PIN_BLUE, OUTPUT);
+  pinMode(RIGHT_LED_PIN_RED, OUTPUT);
+  pinMode(RIGHT_LED_PIN_GREEN, OUTPUT);
+  pinMode(RIGHT_LED_PIN_BLUE, OUTPUT);
 }
-
 
 void loop()
 {
@@ -64,13 +51,10 @@ void loop()
       break;
 
     case MODE_BLACK:
-    
       showBlack();
       break;
   }
 }
-
-
 void processIncomingData()
 {
   if (waitForPreamble(TIMEOUT))
@@ -87,43 +71,20 @@ void processIncomingData()
         byte blue = buffer[0];
         byte green = buffer[1];
         byte red = buffer[2];
-        if(ledNum%2 && ledNum < 2){
-          analogWrite(LED_LEFT_R, red);
-          analogWrite(LED_LEFT_G, green);
-          analogWrite(LED_LEFT_B, blue);
-        }else if(ledNum%2 && ledNum < 4){
-          analogWrite(LED_RIGHT_R, red);
-          analogWrite(LED_RIGHT_G, green);
-          analogWrite(LED_RIGHT_B, blue);
+        if (ledNum == 1){
+          // left eye led
+          analogWrite(LEFT_LED_PIN_RED, red);
+          analogWrite(LEFT_LED_PIN_GREEN, green);
+          analogWrite(LEFT_LED_PIN_BLUE, blue);
+        }else if(ledNum == 3){
+          // right eye led
+          analogWrite(RIGHT_LED_PIN_RED, red);
+          analogWrite(RIGHT_LED_PIN_GREEN, green);
+          analogWrite(RIGHT_LED_PIN_BLUE, blue);
+          
         }
-        //ledsTemp[ledNum] = CRGB(red, green, blue);
       }
       
-      /*
-      else if (ledNum == NUM_LEDS)
-      {
-        //this must be the "postamble" 
-        //this last "color" is actually a closing preamble
-        //if the postamble does not match the expected values, the colors will not be shown
-        if(buffer[0] == 85 && buffer[1] == 204 && buffer[2] == 165) {
-          //the preamble is correct, update the leds!
-
-          // TODO: can we flip the used buffer instead of copying the data?
-          for (int ledNum = 0; ledNum < NUM_LEDS; ledNum++)
-          {
-            leds[ledNum]=ledsTemp[ledNum];
-          }
-      
-          if (currentBrightness < BRIGHTNESS)
-          {
-            currentBrightness++;
-            FastLED.setBrightness(currentBrightness);
-          }
-          
-          //send LED data to actual LEDs
-          FastLED.show();
-        }
-      }*/
     }
   }
   else
@@ -133,7 +94,6 @@ void processIncomingData()
     mode = MODE_BLACK;
   }
 }
-
 
 bool waitForPreamble(int timeout)
 {
@@ -163,26 +123,21 @@ bool waitForPreamble(int timeout)
   return true;
 }
 
-
 void fillLEDsFromPaletteColors()
 {
-
   if (Serial.available() > 0)
   {
     mode = MODE_AMBILIGHT;
   }
 }
 
-
 void showBlack()
 {
   if (currentBrightness > 0)
   {
     currentBrightness--;
-    // FastLED.setBrightness(currentBrightness);
   }
 
-  // FastLED.delay(1000 / UPDATES_PER_SECOND);
 
   if (Serial.available() > 0)
   {
